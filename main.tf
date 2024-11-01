@@ -250,11 +250,22 @@ locals {
 #
 ################################################
 
+# Dummy resource to ensure archive is created at apply stage
+resource null_resource dummy_trigger {
+  triggers = {
+    timestamp = timestamp()
+  }
+}
+
 # Convert *.py to .zip because AWS Lambda need .zip
 data "archive_file" "this" {
   type        = "zip"
   source_dir  = "${path.module}/package/"
   output_path = "${path.module}/aws-stop-start-resources.zip"
+  depends_on = [
+  # Make sure archive is created in apply stage
+    null_resource.dummy_trigger
+  ]
 }
 
 # Create Lambda function for stop or start aws resources
