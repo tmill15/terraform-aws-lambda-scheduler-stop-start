@@ -250,10 +250,15 @@ locals {
 #
 ################################################
 
+# Data source to verify if lamba already exists
+data "aws_lambda_function" "existing_lambda" {
+  function_name = var.name
+}
+
 # Dummy resource to ensure archive is created at apply stage
 resource null_resource dummy_trigger {
   triggers = {
-    timestamp = timestamp()
+    lambda_exists = lookup(data.aws_lambda_function.existing_lambda, "id", "") != ""
   }
 }
 
