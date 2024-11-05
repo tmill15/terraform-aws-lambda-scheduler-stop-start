@@ -250,14 +250,14 @@ locals {
 #
 ################################################
 
-data "local_file" "this" {
-  filename = "${path.module}/aws-stop-start-resources.zip"
+locals {
+  lambda_zip_hash = filebase64sha256("${path.module}/aws-stop-start-resources.zip")
 }
 
 # Create Lambda function for stop or start aws resources
 resource "aws_lambda_function" "this" {
   filename         = "${path.module}/aws-stop-start-resources.zip"
-  source_code_hash = data.local_file.this.content_base64sha256
+  source_code_hash = local.lambda_zip_hash
   function_name    = var.name
   role             = var.custom_iam_role_arn == null ? aws_iam_role.this[0].arn : var.custom_iam_role_arn
   handler          = "scheduler.main.lambda_handler"
