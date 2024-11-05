@@ -258,8 +258,9 @@ data "aws_lambda_function" "existing_lambda" {
 
 # Dummy resource to ensure archive is created at apply stage
 resource null_resource dummy_trigger {
+  count    = length(data.aws_lambda_function.existing_lambda) > 0 ? 1 : 0
   triggers = {
-    lambda_exists = lookup(data.aws_lambda_function.existing_lambda, "id", "") != ""
+    lambda_exists = length(data.aws_lambda_function.existing_lambda) > 0 ? "true" : "false"
   }
 }
 
