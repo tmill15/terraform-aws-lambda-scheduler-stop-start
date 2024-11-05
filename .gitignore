@@ -2,7 +2,6 @@
 .terraform
 .terraform.lock.hcl
 *.tfstate*
-*.zip
 terraform.tfstate.d
 
 # Python files

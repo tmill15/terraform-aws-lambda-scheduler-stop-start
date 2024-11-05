@@ -250,35 +250,14 @@ locals {
 #
 ################################################
 
-# Data source to verify if lamba already exists
-data "aws_lambda_function" "existing_lambda" {
-  count         = length(try([aws_lambda_function.this.id], [])) > 0 ? 1 : 0
-  function_name = var.name
-}
-
-# Dummy resource to ensure archive is created at apply stage
-resource null_resource dummy_trigger {
-  count    = length(data.aws_lambda_function.existing_lambda) > 0 ? 1 : 0
-  triggers = {
-    lambda_exists = length(data.aws_lambda_function.existing_lambda) > 0 ? "true" : "false"
-  }
-}
-
-# Convert *.py to .zip because AWS Lambda need .zip
-data "archive_file" "this" {
-  type        = "zip"
-  source_dir  = "${path.module}/package/"
-  output_path = "${path.module}/aws-stop-start-resources.zip"
-  depends_on = [
-  # Make sure archive is created in apply stage
-    null_resource.dummy_trigger
-  ]
+data "local_file" "this" {
+  filename = "${path.module}/aws-stop-start-resources.zip"
 }
 
 # Create Lambda function for stop or start aws resources
 resource "aws_lambda_function" "this" {
-  filename         = data.archive_file.this.output_path
-  source_code_hash = data.archive_file.this.output_base64sha256
+  filename         = "${path.module}/aws-stop-start-resources.zip"
+  source_code_hash = data.local_file.this.content_base64sha256
   function_name    = var.name
   role             = var.custom_iam_role_arn == null ? aws_iam_role.this[0].arn : var.custom_iam_role_arn
   handler          = "scheduler.main.lambda_handler"
