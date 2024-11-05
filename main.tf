@@ -252,6 +252,7 @@ locals {
 
 # Data source to verify if lamba already exists
 data "aws_lambda_function" "existing_lambda" {
+  count         = length(try([aws_lambda_function.this.id], [])) > 0 ? 1 : 0
   function_name = var.name
 }
 
